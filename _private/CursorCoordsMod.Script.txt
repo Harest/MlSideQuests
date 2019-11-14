@@ -1,0 +1,92 @@
+#RequireContext CGameCtnEditorPluginScriptHandler
+
+Text CreateManialink()
+{
+	declare MLText =
+	"""
+		<script><!--
+			Void UpdateValues() {
+				declare CursorX for Page = 0;
+				declare CursorX2 for Page = 0;
+				declare CursorY for Page = 0;
+				declare CursorY2 for Page = 0;
+				declare CursorZ for Page = 0;
+				declare CursorZ2 for Page = 0;
+				declare LblCursorXValue <=> (Page.GetFirstChild("CursorXValue") as CMlLabel);
+				declare LblCursorX2Value <=> (Page.GetFirstChild("CursorX2Value") as CMlLabel);
+				declare LblCursorYValue <=> (Page.GetFirstChild("CursorYValue") as CMlLabel);
+				declare LblCursorY2Value <=> (Page.GetFirstChild("CursorY2Value") as CMlLabel);
+				declare LblCursorZValue <=> (Page.GetFirstChild("CursorZValue") as CMlLabel);
+				declare LblCursorZ2Value <=> (Page.GetFirstChild("CursorZ2Value") as CMlLabel);
+				LblCursorXValue.SetText("" ^ CursorX);
+				LblCursorX2Value.SetText("- " ^ CursorX2);
+				LblCursorYValue.SetText("" ^ CursorY);
+				LblCursorY2Value.SetText("- " ^ CursorY2);
+				LblCursorZValue.SetText("" ^ CursorZ);
+				LblCursorZ2Value.SetText("- " ^ CursorZ2);
+			}
+			main () {
+				declare BoxOffset = 0;
+				while(True) {
+					yield;
+					UpdateValues();
+				}
+			}
+		--></script>
+		<frame posn="125 38 0">
+			<quad id="CursorCoordBox" posn="0 0" z-index="-1" sizen="42 28" style="Bgs1" substyle="BgList" ScriptEvents="1"/>
+			<label id="CursorXLabel" text="Cursor block" posn="2 -2"/>
+			<label id="CursorXLabel" text="X" posn="2 -7"/>
+				<label id="CursorXValue" text="XXX" posn="8 -7"/>
+				<label id="CursorX2Value" text="XXX" posn="20 -7"/>
+			<label id="CursorYLabel" text="Y" posn="2 -12"/>
+				<label id="CursorYValue" text="XXX" posn="8 -12"/>
+				<label id="CursorY2Value" text="XXX" posn="20 -12"/>
+			<label id="CursorZLabel" text="Z" posn="2 -17"/>
+				<label id="CursorZValue" text="XXX" posn="8 -17"/>
+				<label id="CursorZ2Value" text="XXX" posn="20 -17"/>
+		</frame>
+	""";
+	return MLText;
+}
+
+/////////////////////////////////////
+// Main
+/////////////////////////////////////
+
+main()
+{
+	log("CursorCoordsMod.Script starts");
+	//EnableMapTypeStartTest = True;
+	
+	CursorBrightnessFactor = 1.;
+	HideBlockHelpers = False;
+	
+	LayersDefaultManialinkVersion = 3;
+	
+	declare CursorAction for ManialinkPage = 0;
+	declare CursorX for ManialinkPage = 0;
+	declare CursorX2 for ManialinkPage = 0;
+	declare CursorY for ManialinkPage = 0;
+	declare CursorY2 for ManialinkPage = 0;
+	declare CursorZ for ManialinkPage = 0;
+	declare CursorZ2 for ManialinkPage = 0;
+	
+	// If your blocks has an offset, declare it here
+	declare Integer OffsetX = 0;
+	declare Integer OffsetY = 0;
+	declare Integer OffsetZ = 0;
+	
+	ManialinkText = CreateManialink();
+
+	while(True) {
+		yield;
+		// update ManialinkPage variables
+		CursorX = CursorCoord[0] * 64 + OffsetX;
+		CursorX2 = CursorX + 64;
+		CursorY = (CursorCoord[1]-15) * 16 + OffsetY;
+		CursorY2 = CursorY + 16;
+		CursorZ = CursorCoord[2] * 64 + OffsetZ;
+		CursorZ2 = CursorZ + 64;
+	}
+}
