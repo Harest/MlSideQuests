@@ -14,6 +14,8 @@ $State = strtolower(filter_input(INPUT_GET, 'State')); // Action to do, required
 $Token = filter_input(INPUT_GET, 'Token'); // Used for the RemoveToken state
 $SimpleBoard = boolval(filter_input(INPUT_GET, 'SimpleBoard')); // Used to display a board without start quest button (e.g. quest started elsewhere w/o the board)
 $SimpleBoard = ($SimpleBoard == true) ? "True" : "False";
+$ShootManiaCall = boolval(filter_input(INPUT_GET, 'SM')); // Used to know if it's a ShootMania call, else it's considered a TM² one
+$RequiredContext = ($ShootManiaCall == true) ? "CSmMlScriptIngame" : "CTmMlScriptIngame";
 $HideGui =  strtolower(filter_input(INPUT_GET, 'HideGui'));
 $HideGui = ($HideGui == 'yes') ? "yes" : "no";
 
@@ -21,6 +23,9 @@ $BgColor = "000B";
 if($HideGui=="yes") {
 	$BgColor = "000F";
 }
+
+$startTimeVar = "RaceStartTime";
+if ($ShootManiaCall == true) $startTimeVar = "StartTime";
 
 // Get the quest title
 $QuestInfo = array("title" => "", "map_uid" => "", "author_login" => "");
@@ -60,7 +65,7 @@ echo '
 
 		</frame>
 		<script><!--
-			#RequireContext CTmMlScriptIngame
+			#RequireContext '.$RequiredContext.'
 			#Include "TextLib" as TextLib
 			#Include "MathLib" as MathLib
 			
@@ -289,7 +294,7 @@ echo '
 												
 												if (P_QuestMapUid[G_QuestId] == "") P_QuestMapUid[G_QuestId] = "'.htmlentities($QuestInfo["map_uid"], ENT_XML1).'";
 												if (DebugMode) log("MapUid for quest " ^ TextLib::ToText(G_QuestId) ^ " set to: " ^ P_QuestMapUid[G_QuestId]);
-												P_PlayerRaceStartTime[G_QuestId] = GUIPlayer.RaceStartTime;
+												P_PlayerRaceStartTime[G_QuestId] = GUIPlayer.'.$startTimeVar.';
 												
 												// Check if the MapUid matches
 												if (P_QuestMapUid[G_QuestId] != Map.MapInfo.MapUid) {
@@ -383,7 +388,7 @@ echo '
 							
 							if (P_QuestMapUid[G_QuestId] == "") P_QuestMapUid[G_QuestId] = "'.htmlentities($QuestInfo["map_uid"], ENT_XML1).'";
 							if (DebugMode) log("MapUid for quest " ^ TextLib::ToText(G_QuestId) ^ " set to: " ^ P_QuestMapUid[G_QuestId]);
-							P_PlayerRaceStartTime[G_QuestId] = GUIPlayer.RaceStartTime;
+							P_PlayerRaceStartTime[G_QuestId] = GUIPlayer.'.$startTimeVar.';
 							
 							// Check if the MapUid matches
 							if (P_QuestMapUid[G_QuestId] != Map.MapInfo.MapUid) {
@@ -423,8 +428,8 @@ echo '
 							if (!Per_LocalTokensCollected.existskey(G_QuestId) || Pe_LocalTokensIds[G_QuestId].count == 0) return;
 							
 							// Check we\'re in the same race than when the quest started
-							if (P_PlayerRaceStartTime[G_QuestId] != GUIPlayer.RaceStartTime) {
-								if (DebugMode) log("RaceStartTime mismatch: " ^ TextLib::ToText(P_PlayerRaceStartTime[G_QuestId]) ^ " / " ^ GUIPlayer.RaceStartTime);
+							if (P_PlayerRaceStartTime[G_QuestId] != GUIPlayer.'.$startTimeVar.') {
+								if (DebugMode) log("RaceStartTime mismatch: " ^ TextLib::ToText(P_PlayerRaceStartTime[G_QuestId]) ^ " / " ^ GUIPlayer.'.$startTimeVar.');
 								clearPersistentData();
 								return;
 							}

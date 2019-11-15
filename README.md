@@ -1,7 +1,10 @@
-# TM2 Manialink Side Quests info  
+# TM2 / SM Manialink Side Quests info  
 [Official forum link](https://forum.maniaplanet.com/viewtopic.php?f=266&t=46335)  
-
 ## Introduction  
+This is a tool usable in Trackmania² and ShootMania which are both on ManiaPlanet. It allows you to add quests inside your maps.  
+It's made of ManiaScript alongside PHP/SQL to read/write data used in the quests. This ManiaScript is loaded in your maps from a Manialink call inside a MediaTracker clip.
+
+## How to install  
 Unless authorized to use the manialink MLSideQuests, you'll need to create one (thankfully the first is free) [over there](https://www.maniaplanet.com/account/manialinks).  
 It needs to point out to wherever you hosted the scripts, and on the Main.php script.  
 Yes, you need to host the scripts and create the database (see `_private` folder, file `tm2ml_sidequests.sql` for the tables). I'll let you find a web host yourself for that, there's a lot of free ones that should do the job fine.  
@@ -25,6 +28,7 @@ What you can also do if there's a real tokens order is to set the first one at `
 
 Now, here's the format of the Manialinks. You may want to replace MLSideQuests by the name of your own manialink.  
 You'll need to specify the QuestId value and the Token id value if needed depending on the State.  
+To use it in ShootMania you only need to add the parameter `SM=1` in each Manialink call (don't forget the & before).
 ### Starting a quest  
 There's two ways for that:  
 
