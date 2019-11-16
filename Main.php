@@ -1,7 +1,5 @@
 <?php
 // Manialink main script - Generate the ManiaLink Script for ManiaPlanet
-
-// Include file to check client
 require(__DIR__."/includes/functions.php");
 require(__DIR__."/class/class.cacheManager.php");
 $cacheManager = new cacheManager();
@@ -15,19 +13,30 @@ $Token = filter_input(INPUT_GET, 'Token'); // Used for the RemoveToken state
 $SimpleBoard = boolval(filter_input(INPUT_GET, 'SimpleBoard')); // Used to display a board without start quest button (e.g. quest started elsewhere w/o the board)
 $SimpleBoard = ($SimpleBoard == true) ? "True" : "False";
 $ShootManiaCall = boolval(filter_input(INPUT_GET, 'SM')); // Used to know if it's a ShootMania call, else it's considered a TM² one
-$RequiredContext = ($ShootManiaCall == true) ? "CSmMlScriptIngame" : "CTmMlScriptIngame";
-$HideGui =  strtolower(filter_input(INPUT_GET, 'HideGui'));
-$HideGui = ($HideGui == 'yes') ? "yes" : "no";
+$HideGuiGet =  strtolower(filter_input(INPUT_GET, 'HideGui'));
 
-$BgColor = "000B";
-if($HideGui=="yes") {
+// Set constants used in the script
+$BgColor = "000B"; // Background color of the board window
+$HideGui = "no";
+if ($HideGuiGet == "yes") {
+// Hide the background and some UI elements when you click on the "Start Quest" button of the board
+// Useful if you don't want to display another window to the player when (s)he starts the quest
+	$HideGui = "yes";
 	$BgColor = "000F";
 }
-
+// Name of the RaceTime constant of GUIPlayer in TM²/SM used for a check
 $startTimeVar = "RaceStartTime";
-if ($ShootManiaCall == true) $startTimeVar = "StartTime";
+// Name of the RequireContext condition for the script to run in-game
+$RequiredContext = "CTmMlScriptIngame";
+if ($ShootManiaCall == true) {
+	$startTimeVar = "StartTime";
+	$RequiredContext = "CSmMlScriptIngame";
+}
+// URL used in the few requests done in the script (to get the board, the tokens and register a completed quest)
+$urlToRequest = ($_SERVER['SERVER_HTTPS'] == "on") ? "https://" : "http://";
+$urlToRequest .= $_SERVER['HTTP_HOST'].str_replace("Main.php", "", $_SERVER['SCRIPT_NAME']);
 
-// Get the quest title
+// Get the quest info
 $QuestInfo = array("title" => "", "map_uid" => "", "author_login" => "");
 if ($State == "board" or $State == "start") {
 	// Quest info are cached for 1h
@@ -247,7 +256,7 @@ echo '
 							// Requesting quest info and players who completed it
 							if (DebugMode) log("Retrieving quest " ^ TextLib::ToText(G_QuestId) ^ " info...");
 							declare CHttpRequest request;
-							request = Http.CreateGet("https://www.i-volve.net/games/tm2ml/GetBoard.php?QuestId=" ^ TextLib::ToText(G_QuestId) ^ "&" ^ Now);
+							request = Http.CreateGet("'.$urlToRequest.'GetBoard.php?QuestId=" ^ TextLib::ToText(G_QuestId) ^ "&" ^ Now);
 							wait(request.IsCompleted);
 							
 							// Assigning results
@@ -303,7 +312,7 @@ echo '
 												} else {
 													// MapUid matches, requesting quest tokens list
 													if (DebugMode) log("Retrieving quest " ^ TextLib::ToText(G_QuestId) ^ " tokens...");
-													request = Http.CreateGet("https://www.i-volve.net/games/tm2ml/GetTokens.php?QuestId=" ^ TextLib::ToText(G_QuestId) ^ "&" ^ Now);
+													request = Http.CreateGet("'.$urlToRequest.'GetTokens.php?QuestId=" ^ TextLib::ToText(G_QuestId) ^ "&" ^ Now);
 													wait(request.IsCompleted);
 													declare STokensJsonResponse Response;
 													Response.fromjson(request.Result);
@@ -399,7 +408,7 @@ echo '
 								// MapUid matches, requesting quest tokens list
 								if (DebugMode) log("Retrieving quest " ^ TextLib::ToText(G_QuestId) ^ " tokens...");
 								declare CHttpRequest request;
-								request = Http.CreateGet("https://www.i-volve.net/games/tm2ml/GetTokens.php?QuestId=" ^ TextLib::ToText(G_QuestId) ^ "&" ^ Now);
+								request = Http.CreateGet("'.$urlToRequest.'GetTokens.php?QuestId=" ^ TextLib::ToText(G_QuestId) ^ "&" ^ Now);
 								wait(request.IsCompleted);
 								declare STokensJsonResponse Response;
 								Response.fromjson(request.Result);
@@ -449,7 +458,7 @@ echo '
 							}
 
 							// If all the tokens are collected we submit the completion to the server for processing
-							if(TokensAreCollected())
+							if (TokensAreCollected())
 							{
 								// Get the player positions list at each token as csv
 								// Log all tokens for quest if debug activated
@@ -457,7 +466,7 @@ echo '
 								
 								declare CHttpRequest request;
 								if (DebugMode) log("Quest " ^ TextLib::ToText(G_QuestId) ^ " completed. Processing...");
-								request = Http.CreateGet("https://www.i-volve.net/games/tm2ml/UpdateQuest.php?QuestId=" ^ TextLib::ToText(G_QuestId) ^ "&Login=" ^ LocalUser.Login ^ "&UserName=" ^ LocalUser.Name ^ "&Positions=" ^ TextLib::URLEncode(Pe_PlayerPosString) ^ "&MapUid=" ^ P_QuestMapUid[G_QuestId] ^ "&" ^ Now);
+								request = Http.CreateGet("'.$urlToRequest.'UpdateQuest.php?QuestId=" ^ TextLib::ToText(G_QuestId) ^ "&Login=" ^ LocalUser.Login ^ "&UserName=" ^ LocalUser.Name ^ "&Positions=" ^ TextLib::URLEncode(Pe_PlayerPosString) ^ "&MapUid=" ^ P_QuestMapUid[G_QuestId] ^ "&" ^ Now);
 								clearPersistentData();
 								wait(request.IsCompleted);
 								if (DebugMode) {
@@ -465,6 +474,8 @@ echo '
 								}
 								// Only log visible to anyone that returns what happened, can be useful
 								log(request.Result);
+							} else if (DebugMode) {
+								LogMissingTokens();
 							}
 						}
 					}
