@@ -14,7 +14,7 @@ $SimpleBoard = boolval(filter_input(INPUT_GET, 'SimpleBoard')); // Used to displ
 $SimpleBoard = ($SimpleBoard == true) ? "True" : "False";
 $ShootManiaCall = boolval(filter_input(INPUT_GET, 'SM')); // Used to know if it's a ShootMania call, else it's considered a TM² one
 $HideGuiGet =  strtolower(filter_input(INPUT_GET, 'HideGui'));
-$DisplayPosition = boolval(filter_input(INPUT_GET, 'DisplayPosition')); // Used during map edition to know your exact position in the log (call it while racing)
+$DisplayPosition = boolval(filter_input(INPUT_GET, 'DisplayPosition')); // Used during map edition to know your exact position (call it w/ MT clip)
 
 // Set constants used in the script
 $BgColor = "000B"; // Background color of the board window
@@ -34,7 +34,7 @@ if ($ShootManiaCall == true) {
 	$RequiredContext = "CSmMlScriptIngame";
 }
 // URL used in the few requests done in the script (to get the board, the tokens and register a completed quest)
-$urlToRequest = ($_SERVER['SERVER_HTTPS'] == "on") ? "https://" : "http://";
+$urlToRequest = ($_SERVER['HTTPS'] == "on") ? "https://" : "http://";
 $urlToRequest .= $_SERVER['HTTP_HOST'].str_replace("Main.php", "", $_SERVER['SCRIPT_NAME']);
 
 // Get the quest info
@@ -74,10 +74,10 @@ if ($DisplayPosition) {
 	main() {
 		declare CMlLabel LblPosition = (Page.GetFirstChild("Position") as CMlLabel);
 		declare Boolean Continue = True;
-		declare Integer DisplayFrames = 10;
+		declare Integer DisplayFrame = 10;
 		declare Integer CurrentFrame = 0;
 		while(Continue) {
-			if (DisplayFrames < CurrentFrame) {
+			if (DisplayFrame < CurrentFrame) {
 				LblPosition.SetText(TextLib::ToText(GUIPlayer.Position));
 				CurrentFrame = 0;
 			}
