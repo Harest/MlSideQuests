@@ -39,17 +39,17 @@ Now, here's the format of the Manialinks. You want to replace `MLSideQuests` by 
 You'll need to specify the QuestId value and the Token id value if needed depending on the State.  
 To use it in ShootMania you only need to add the parameter `SM=1` in each Manialink call (don't forget the & before).  
 
-### Starting a quest  
+### Start a quest  
 There's two ways for that:  
 
 * By displaying the board with a start quest button: `MLSideQuests?State=board&QuestId=1`  
 * By starting the quest without board: `MLSideQuests?State=start&QuestId=1`  
 Note: In that case, if you want to display the board somewhere, you can by calling: `MLSideQuests?State=board&QuestId=1&SimpleBoard=1`  
 
-### Setting a token as collected (remove token)  
+### Set a token as collected (remove token)  
 `MLSideQuests?State=removetoken&QuestId=1&Token=1`  
 
-### Seeing your position while mapping  
+### See your position while mapping  
 This one is available for everyone. It returns a specific script that'll display your position while racing. Useful to set the tokens of your quests at their correct position in the database.  
 You can stop the display by either pressing `Enter` or `Backspace`.  
 `MLSideQuests?DisplayPosition=1`  
