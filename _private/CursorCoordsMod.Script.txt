@@ -72,21 +72,66 @@ main()
 	declare CursorZ for ManialinkPage = 0;
 	declare CursorZ2 for ManialinkPage = 0;
 	
-	// If your blocks has an offset, declare it here
+	// Environment block size
+	declare Text Environment = Map.CollectionName;
+	declare Integer sizeX;
+	declare Integer sizeY;
+	declare Integer startPosY;
 	declare Integer OffsetX = 0;
 	declare Integer OffsetY = 0;
 	declare Integer OffsetZ = 0;
+	switch (Environment) {
+		case "Canyon": {
+			sizeX = 64;
+			sizeY = 16;
+			startPosY = 15;
+		}
+		case "Stadium": {
+			sizeX = 32;
+			sizeY = 8;
+			startPosY = 9;
+			//OffsetY = 9 only for the floor
+		}
+		case "Valley": {
+			sizeX = 32;
+			sizeY = 8;
+			startPosY = 5;
+			//OffsetY = 2 only for the floor
+		}
+		case "Lagoon": {
+			sizeX = 32;
+			sizeY = 8;
+			startPosY = 6; // 5 in water
+			OffsetY = 11; // offset road
+		}
+		case "Storm": {
+			sizeX = 8;
+			sizeY = 2;
+			startPosY = 9;
+			OffsetY = 1;
+		}
+		default: {
+			sizeX = 32;
+			sizeY = 8;
+			startPosY = 0;
+		}
+	}
+	
+	// If your blocks has an offset, declare it here
+	OffsetX += 0;
+	OffsetY += 0;
+	OffsetZ += 0;
 	
 	ManialinkText = CreateManialink();
 
 	while(True) {
 		yield;
 		// update ManialinkPage variables
-		CursorX = CursorCoord[0] * 64 + OffsetX;
-		CursorX2 = CursorX + 64;
-		CursorY = (CursorCoord[1]-15) * 16 + OffsetY;
-		CursorY2 = CursorY + 16;
-		CursorZ = CursorCoord[2] * 64 + OffsetZ;
-		CursorZ2 = CursorZ + 64;
+		CursorX = CursorCoord[0] * sizeX + OffsetX;
+		CursorX2 = CursorX + sizeX;
+		CursorY = (CursorCoord[1] - startPosY) * sizeY + OffsetY;
+		CursorY2 = CursorY + sizeY;
+		CursorZ = CursorCoord[2] * sizeX + OffsetZ;
+		CursorZ2 = CursorZ + sizeX;
 	}
 }

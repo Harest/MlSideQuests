@@ -14,6 +14,7 @@ $SimpleBoard = boolval(filter_input(INPUT_GET, 'SimpleBoard')); // Used to displ
 $SimpleBoard = ($SimpleBoard == true) ? "True" : "False";
 $ShootManiaCall = boolval(filter_input(INPUT_GET, 'SM')); // Used to know if it's a ShootMania call, else it's considered a TM² one
 $HideGuiGet =  strtolower(filter_input(INPUT_GET, 'HideGui'));
+$DisplayPosition = boolval(filter_input(INPUT_GET, 'DisplayPosition')); // Used during map edition to know your exact position in the log (call it while racing)
 
 // Set constants used in the script
 $BgColor = "000B"; // Background color of the board window
@@ -58,9 +59,50 @@ if ($State == "board" or $State == "start") {
 	}
 }
 
+// If we only want to log the Player positions for mapping purpose, we just return this script
+// Display the player position constantly
+// Press Enter of Backspace to stop the loop
+if ($DisplayPosition) {
+	echo '
+	<manialink version="2">
+	<frame pos="-27.0 53.2" size="53.8 8.8">
+		<label id="Position" hidden="0" text="" pos="-27.0 53.2" size="53.8 8.8" textprefix="$o$s" textcolor="FFFF" valign="top" halign="center"/>
+	</frame>
+	<script><!--
+	#RequireContext '.$RequiredContext.'
+	#Include "TextLib" as TextLib
+	main() {
+		declare CMlLabel LblPosition = (Page.GetFirstChild("Position") as CMlLabel);
+		declare Boolean Continue = True;
+		declare Integer DisplayFrames = 10;
+		declare Integer CurrentFrame = 0;
+		while(Continue) {
+			if (DisplayFrames < CurrentFrame) {
+				LblPosition.SetText(TextLib::ToText(GUIPlayer.Position));
+				CurrentFrame = 0;
+			}
+			CurrentFrame += 1;
+			
+			foreach (Event in PendingEvents)
+			{
+				if (Event.KeyCode == 20 || Event.KeyCode == 109)
+				{
+					Continue = False;
+					LblPosition.SetText("");
+					log("DisplayPositionScript stopped.");
+				}
+			}
+			yield;
+		}
+	}
+	--></script>
+	</manialink>';
+	return;
+}
+
 // Echo whole manialink
 echo '
-	<manialink version="1">
+	<manialink version="2">
 		<timeout>15</timeout>
 		<frame id="Window" hidden="0">
 			<quad id="Background" hidden="0" sizen="160 120" posn="0 80 1"  valign="top"  bgcolor="'.$BgColor.'" halign="center"/>

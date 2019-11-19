@@ -49,6 +49,11 @@ Note: In that case, if you want to display the board somewhere, you can by calli
 ### Setting a token as collected (remove token)  
 `MLSideQuests?State=removetoken&QuestId=1&Token=1`  
 
+### Seeing your position while mapping  
+This one is available for everyone. It returns a specific script that'll display your position while racing. Useful to set the tokens of your quests at their correct position in the database.  
+You can stop the display by either pressing `Enter` or `Backspace`.  
+`MLSideQuests?DisplayPosition=1`  
+
 That's it, enjoy creating quests for your maps!  
 
 ## Thanks  
