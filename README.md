@@ -1,7 +1,7 @@
 # TM2 / SM Manialink Side Quests info  
 [Official forum link](https://forum.maniaplanet.com/viewtopic.php?f=266&t=46335)  
 ## Introduction  
-This is a tool usable in Trackmania² and ShootMania which are both on ManiaPlanet. It allows you to add quests inside your maps.  
+This is a tool usable in Trackmania² and ShootMania which are both on ManiaPlanet. It allows you to add quests inside your maps, or more specifically, to keep track of the players who completed these quests as the rest is managed by the MediaTracker.  
 It's made of ManiaScript alongside PHP/SQL to read/write data used in the quests. This ManiaScript is loaded in your maps from a Manialink call inside a MediaTracker clip.  
 
 ## How it works  
