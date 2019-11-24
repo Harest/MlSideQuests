@@ -39,12 +39,27 @@ if(isClientName('maniaplanet')) {
 			require(__DIR__."/includes/dbConfig.php");
 			$dbh = databaseConnect($dbHost, $dbUser, $dbPwd, $dbName); // Database Handler
 		}
-		$sql = "SELECT login, nickname FROM players WHERE quest_id = :questid AND status = 1 ORDER BY completion_date ASC";
+		$sql = "SELECT login, nickname, completion_time_best as bestTime, completion_time_first as firstTime FROM players WHERE quest_id = :questid AND status = 1 ORDER BY completion_date_first ASC";
 		$params = array(":questid" => $QuestId);
 		$qh = $dbh->prepare($sql);
 		$qexec = $qh->execute($params);
 		$players = $qh->fetchAll(PDO::FETCH_ASSOC);
 		$qh = null;
+		// Format the players' times
+		foreach ($players as $key => $player) {
+			$tmpTime = gameTimeToDateInterval($player["firstTime"]);
+			if ($tmpTime->h >= 1) {
+				$players[$key]["firstTime"] = "more than 1 hour";
+			} else {
+				$players[$key]["firstTime"] = $tmpTime->format("%I:%S.").substr($tmpTime->f, 0, 3);
+			}
+			$tmpTime = gameTimeToDateInterval($player["bestTime"]);
+			if ($tmpTime->h >= 1) {
+				$players[$key]["bestTime"] = "more than 1 hour";
+			} else {
+				$players[$key]["bestTime"] = $tmpTime->format("%I:%S.").substr($tmpTime->f, 0, 3);
+			}
+		}
 		// Return the results
 		$playersList = array("Players" => $players,
 							 "QuestShortDesc" => ($QuestInfo["description_short"] != null) ? htmlentities($QuestInfo["description_short"], ENT_XML1) : "",

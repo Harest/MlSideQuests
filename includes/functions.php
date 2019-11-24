@@ -20,3 +20,17 @@ function isClientName($clientName) {
 function startsWith($haystack, $needle) {
     return ($needle === "" || strpos($haystack, $needle) === 0);
 }
+
+// Convert a time in milliseconds as a DateInterval
+function gameTimeToDateInterval($time) {
+	$seconds = floor($time / 1000);
+	$dateInterval = new \DateInterval('P0D');
+	$dateInterval->y = floor($seconds / (365 * 24 * 60 * 60));
+	$dateInterval->m = floor(($seconds - ($dateInterval->y * 365 * 24 * 60 * 60)) / (30 * 24 * 60 * 60));
+	$dateInterval->d = floor(($seconds - ($dateInterval->m * 30 * 24 * 60 * 60)) / (24 * 60 * 60));
+	$dateInterval->h = floor(($seconds - ($dateInterval->d * 24 * 60 * 60)) / (60 * 60));
+	$dateInterval->i = floor(($seconds - ($dateInterval->h * 60 * 60)) / (60));
+	$dateInterval->s = floor($seconds % 60);
+	$dateInterval->f = $time - ($seconds * 1000);
+	return $dateInterval;
+}

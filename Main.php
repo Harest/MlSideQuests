@@ -124,6 +124,8 @@ echo '
 			#Struct SPlayer {
 				Text login;
 				Text nickname;
+				Text firstTime;
+				Text bestTime;
 			}
 			#Struct SBoardJsonResponse {
 				SPlayer[] Players;
@@ -177,12 +179,14 @@ echo '
 				declare persistent Text[][Integer] Pe_LocalTokensIds for Map;
 				declare persistent Text[][Integer] Pe_PlayerPos for Map;
 				declare persistent Integer[Integer] P_PlayerRaceStartTime for Map;
+				declare persistent Integer[Integer] P_PlayerQuestStartTime for Map;
 				declare persistent Text[Integer] P_QuestMapUid for Map;
 				
 				Per_LocalTokensCollected[G_QuestId] = [];
 				Pe_LocalTokensIds[G_QuestId] = [];
 				Pe_PlayerPos[G_QuestId] = [];
 				P_PlayerRaceStartTime[G_QuestId] = 0;
+				P_PlayerQuestStartTime[G_QuestId] = 0;
 				P_QuestMapUid[G_QuestId] = "";
 			}
 			
@@ -204,9 +208,9 @@ echo '
 				if (nbPlayers >= 1) {
 					declare Text QuestTitleToDisplay = TextLib::Replace(QuestTitleList, "[count]", nbPlayers ^ " " ^ PluralPlayers);
 					Message.SetText(Message.Value ^ QuestTitleToDisplay ^ "\n");
-					if (CurPage == 1) Message.SetText(Message.Value ^ "$iNote: This list is cached 10 minutes.$z\n");
+					if (CurPage == 1) Message.SetText(Message.Value ^ "$nNote: This list is cached 10 minutes, ordered by first completion date.$z\n");
 				} else {
-					Message.SetText(Message.Value ^ QuestTitleEmptyList ^ "\n$iNote: This list is cached 10 minutes.$z");
+					Message.SetText(Message.Value ^ QuestTitleEmptyList ^ "\n$nNote: This list is cached 10 minutes.$z");
 				}
 				for(i, StartPos, MaxLimit)
 				{
@@ -219,7 +223,7 @@ echo '
 					{
 						declare Text RankDisplay = TextLib::ToText(i+1);
 						if (i < 9) RankDisplay = "0" ^ TextLib::ToText(i+1);
-						Message.SetText(Message.Value ^ "\t\t\t\t\t\t\t$fff#" ^ RankDisplay ^ ":$g\t\t" ^ playersList[i].nickname ^ "$z $fff(" ^ playersList[i].login ^ ")\n");
+						Message.SetText(Message.Value ^ "$fff#" ^ RankDisplay ^ ":$g\t" ^ playersList[i].nickname ^ "$z $fff(" ^ playersList[i].login ^ ") in " ^ playersList[i].firstTime ^ " (PB: " ^ playersList[i].bestTime ^ ")\n");
 					}
 				}
 			}
@@ -261,6 +265,7 @@ echo '
 				declare persistent Text[][Integer] Pe_LocalTokensIds for Map;
 				declare persistent Text[][Integer] Pe_PlayerPos for Map;
 				declare persistent Integer[Integer] P_PlayerRaceStartTime for Map;
+				declare persistent Integer[Integer] P_PlayerQuestStartTime for Map;
 				declare persistent Text[Integer] P_QuestMapUid for Map;
 				declare persistent Boolean DebugMode for Map;
 				G_QuestId = '.htmlentities($QuestId, ENT_XML1).';
@@ -346,6 +351,7 @@ echo '
 												if (P_QuestMapUid[G_QuestId] == "") P_QuestMapUid[G_QuestId] = "'.htmlentities($QuestInfo["map_uid"], ENT_XML1).'";
 												if (DebugMode) log("MapUid for quest " ^ TextLib::ToText(G_QuestId) ^ " set to: " ^ P_QuestMapUid[G_QuestId]);
 												P_PlayerRaceStartTime[G_QuestId] = GUIPlayer.'.$startTimeVar.';
+												P_PlayerQuestStartTime[G_QuestId] = GameTime;
 												
 												// Check if the MapUid matches
 												if (P_QuestMapUid[G_QuestId] != Map.MapInfo.MapUid) {
@@ -382,7 +388,7 @@ echo '
 													}
 													else
 													{
-														Message.SetText(QuestFullDesc ^ "\n\nHave fun!\n\nNote: You need to complete the quest in the same race from where you started it. If you restart (e.g. by pressing del), you\'ll need to start the quest again. Several quests can be done in the same race.");
+														Message.SetText(QuestFullDesc ^ "\n\nHave fun!\n\n$nNote: You need to complete the quest in the same race from where you started it. If you restart (e.g. by pressing del), you\'ll need to start the quest again. Several quests can be done in the same race.$z");
 													}
 													
 													// Log all tokens for quest if debug activated
@@ -440,6 +446,7 @@ echo '
 							if (P_QuestMapUid[G_QuestId] == "") P_QuestMapUid[G_QuestId] = "'.htmlentities($QuestInfo["map_uid"], ENT_XML1).'";
 							if (DebugMode) log("MapUid for quest " ^ TextLib::ToText(G_QuestId) ^ " set to: " ^ P_QuestMapUid[G_QuestId]);
 							P_PlayerRaceStartTime[G_QuestId] = GUIPlayer.'.$startTimeVar.';
+							P_PlayerQuestStartTime[G_QuestId] = GameTime;
 							
 							// Check if the MapUid matches
 							if (P_QuestMapUid[G_QuestId] != Map.MapInfo.MapUid) {
@@ -506,9 +513,12 @@ echo '
 								// Log all tokens for quest if debug activated
 								declare Text Pe_PlayerPosString = LogMissingTokens();
 								
+								// Get quest completion time
+								declare Integer QuestCompletionTime = GameTime - P_PlayerQuestStartTime[G_QuestId];
+								
 								declare CHttpRequest request;
 								if (DebugMode) log("Quest " ^ TextLib::ToText(G_QuestId) ^ " completed. Processing...");
-								request = Http.CreateGet("'.$urlToRequest.'UpdateQuest.php?QuestId=" ^ TextLib::ToText(G_QuestId) ^ "&Login=" ^ LocalUser.Login ^ "&UserName=" ^ LocalUser.Name ^ "&Positions=" ^ TextLib::URLEncode(Pe_PlayerPosString) ^ "&MapUid=" ^ P_QuestMapUid[G_QuestId] ^ "&" ^ Now);
+								request = Http.CreateGet("'.$urlToRequest.'UpdateQuest.php?QuestId=" ^ TextLib::ToText(G_QuestId) ^ "&Login=" ^ LocalUser.Login ^ "&UserName=" ^ LocalUser.Name ^ "&Positions=" ^ TextLib::URLEncode(Pe_PlayerPosString) ^ "&MapUid=" ^ P_QuestMapUid[G_QuestId] ^ "&Time=" ^ TextLib::ToText(QuestCompletionTime) ^ "&" ^ Now);
 								clearPersistentData();
 								wait(request.IsCompleted);
 								if (DebugMode) {

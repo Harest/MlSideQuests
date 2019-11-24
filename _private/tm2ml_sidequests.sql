@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost
--- Généré le :  jeu. 14 nov. 2019 à 11:32
+-- Généré le :  Dim 24 nov. 2019 à 20:22
 -- Version du serveur :  10.3.17-MariaDB-0+deb10u1-log
--- Version de PHP :  7.3.9-1~deb10u1
+-- Version de PHP :  7.3.11-1~deb10u1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -32,7 +32,10 @@ CREATE TABLE `players` (
   `login` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Login ManiaPlanet',
   `nickname` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'In-game NickName',
   `quest_id` smallint(5) UNSIGNED NOT NULL,
-  `completion_date` datetime NOT NULL DEFAULT current_timestamp(),
+  `completion_date_first` datetime NOT NULL DEFAULT current_timestamp(),
+  `completion_date_best` datetime NOT NULL DEFAULT current_timestamp(),
+  `completion_time_first` int(11) NOT NULL COMMENT 'Completion time for the first time (in milliseconds)',
+  `completion_time_best` int(11) NOT NULL COMMENT 'Best completion time (in milliseconds)',
   `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '1 (default) = OK, 0 = NOK (cheat, ...)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Players who finished a quest';
 

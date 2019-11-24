@@ -16,6 +16,7 @@ if(isClientName('maniaplanet')) {
 	$UserName = filter_input(INPUT_GET, 'UserName');
 	$Positions = urldecode(filter_input(INPUT_GET, 'Positions'));
 	$MapUid = filter_input(INPUT_GET, 'MapUid');
+	$Time = intval(filter_input(INPUT_GET, 'Time'));
 	
 	// Check the player already finished or not
 	$sql = "SELECT COUNT(*) FROM players WHERE quest_id = :questid AND login = :login";
@@ -24,9 +25,24 @@ if(isClientName('maniaplanet')) {
 	$qh = $dbh->prepare($sql);
 	$qexec = $qh->execute($params);
 	$alreadyFinished = $qh->fetchColumn();
+	
+	$processingRequired = false; // See if we need to either insert completion or update best time
+	
+	// Get completion info if the player already finished, see if the completime time is better
+	if ($alreadyFinished == 1) {
+		$sql = "SELECT completion_time_best FROM players WHERE quest_id = :questid AND login = :login";
+		$params = array(":questid" => $QuestId,
+						":login" => $Login);
+		$qh = $dbh->prepare($sql);
+		$qexec = $qh->execute($params);
+		$bestTime = $qh->fetchColumn();
+		if ($bestTime > $Time) $processingRequired = true;
+	} else {
+		$processingRequired = true;
+	}
 
-	// Player never finished yet, it's the first time, starting the checks
-	if($alreadyFinished == 0) {
+	// Player never finished yet (first time) or best time beaten, starting the checks
+	if($processingRequired == true) {
 		// MapUid check //
 		// Quest info are cached for 1h
 		$cacheId = "tm2ml_board_q".$QuestId."_info";
@@ -102,17 +118,26 @@ if(isClientName('maniaplanet')) {
 		
 		if ($tokensPassed == count($tokens)) $checkPassed = true;
 		
-		// Check OK, insert completion in db
+		// Check OK, insert completion in db for a first time, update otherwise
 		if ($checkPassed) {
-			$sql = "INSERT INTO players (quest_id, login, nickname) VALUES (:questid, :login, :nickname)";
+			if ($alreadyFinished == 0) {
+				$sql = "INSERT INTO players (quest_id, login, nickname, completion_time_first, completion_time_best) VALUES (:questid, :login, :nickname, :time, :time)";
+			} else {
+				$sql = "UPDATE players SET nickname = :nickname, completion_date_best = NOW(), completion_time_best = :time WHERE quest_id = :questid AND login = :login";
+			}
 			$params = array(":login" => $Login,
 							":questid" => $QuestId,
-							":nickname" => $UserName);
+							":nickname" => $UserName,
+							":time" => $Time);
 			$qh = $dbh->prepare($sql);
 			$qexec = $qh->execute($params);
 			$qh = null;
 			if ($qexec) {
-				echo "Congrats, you completed this quest!";
+				if ($alreadyFinished == 0) {
+					echo "Congrats, you completed this quest!";
+				} else {
+					echo "Congrats, you beat your best time for this quest!";
+				}
 			} else {
 				echo "An error occured while processing your completion, sorry :/. Error: ".htmlentities($qh->errorInfo()[2], ENT_XML1)." (s".intval($qh->errorInfo()[0])."d".$qh->errorInfo()[1].")";
 			}
@@ -120,7 +145,7 @@ if(isClientName('maniaplanet')) {
 			echo "Sorry, seems like you didn't collect all the tokens or an error occured.";
 		}
 	} else {
-		echo "You already completed this quest, hope you enjoyed!";
+		echo "You already completed this quest and didn't beat your best time, hope you still enjoyed!";
 	}
 
 } else {
