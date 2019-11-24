@@ -47,18 +47,8 @@ if(isClientName('maniaplanet')) {
 		$qh = null;
 		// Format the players' times
 		foreach ($players as $key => $player) {
-			$tmpTime = gameTimeToDateInterval($player["firstTime"]);
-			if ($tmpTime->h >= 1) {
-				$players[$key]["firstTime"] = "more than 1 hour";
-			} else {
-				$players[$key]["firstTime"] = $tmpTime->format("%I:%S.").substr($tmpTime->f, 0, 3);
-			}
-			$tmpTime = gameTimeToDateInterval($player["bestTime"]);
-			if ($tmpTime->h >= 1) {
-				$players[$key]["bestTime"] = "more than 1 hour";
-			} else {
-				$players[$key]["bestTime"] = $tmpTime->format("%I:%S.").substr($tmpTime->f, 0, 3);
-			}
+			$players[$key]["firstTime"] = gameTimeFormatted($player["firstTime"]);
+			$players[$key]["bestTime"] = gameTimeFormatted($player["bestTime"]);
 		}
 		// Return the results
 		$playersList = array("Players" => $players,

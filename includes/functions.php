@@ -34,3 +34,13 @@ function gameTimeToDateInterval($time) {
 	$dateInterval->f = $time - ($seconds * 1000);
 	return $dateInterval;
 }
+
+// Return a GameTime DateInterval formatted as MM:SS.ms
+function gameTimeFormatted($time) {
+	$tmpTime = gameTimeToDateInterval($time);
+	if ($tmpTime->h >= 1) {
+		return "more than 1 hour";
+	} else {
+		return $tmpTime->format("%I:%S.").$tmpTime->f;
+	}
+}

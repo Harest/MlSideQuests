@@ -13,7 +13,7 @@ if(isClientName('maniaplanet')) {
 	// Get vars
 	$Login = filter_input(INPUT_GET, 'Login');
 	$QuestId = intval(filter_input(INPUT_GET, 'QuestId'));
-	$UserName = filter_input(INPUT_GET, 'UserName');
+	$UserName = urldecode(filter_input(INPUT_GET, 'UserName'));
 	$Positions = urldecode(filter_input(INPUT_GET, 'Positions'));
 	$MapUid = filter_input(INPUT_GET, 'MapUid');
 	$Time = intval(filter_input(INPUT_GET, 'Time'));
