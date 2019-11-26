@@ -58,7 +58,10 @@ if(isClientName('maniaplanet')) {
 			$cacheManager->set($cacheId, $QuestInfo, 3600);
 		}
 		
-		if ($QuestInfo["map_uid"] != $MapUid) {
+		if (empty($QuestInfo)) {
+			echo "This quest doesn't exist.";
+			return;
+		} else if ($QuestInfo["map_uid"] != $MapUid) {
 			echo "The quest is set to be on a different map...";
 			return;
 		}

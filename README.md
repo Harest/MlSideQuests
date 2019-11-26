@@ -54,6 +54,8 @@ This one is available for everyone. It returns a specific script that'll display
 You can stop the display by either pressing `Enter` or `Backspace`.  
 `MLSideQuests?DisplayPosition=1`  
 
+Little tip: You can press `Ctrl+G` to see the logs. By default, if you're the author of the map, you'll always be in debug mode. Otherwise nothing is logged for players except for the quest completion request result.
+
 That's it, enjoy creating quests for your maps!  
 
 ## Thanks  

@@ -38,7 +38,7 @@ $urlToRequest = ($_SERVER['HTTPS'] == "on") ? "https://" : "http://";
 $urlToRequest .= $_SERVER['HTTP_HOST'].str_replace("Main.php", "", $_SERVER['SCRIPT_NAME']);
 
 // Get the quest info
-$QuestInfo = array("title" => "", "map_uid" => "", "author_login" => "");
+$QuestInfoEmpty = array("title" => "", "map_uid" => "", "author_login" => "");
 if ($State == "board" or $State == "start") {
 	// Quest info are cached for 1h
 	$cacheId = "tm2ml_board_q".$QuestId."_info";
@@ -57,6 +57,9 @@ if ($State == "board" or $State == "start") {
 		
 		$cacheManager->set($cacheId, $QuestInfo, 3600);
 	}
+	if (empty($QuestInfo)) $QuestInfo = $QuestInfoEmpty;
+} else {
+	$QuestInfo = $QuestInfoEmpty;
 }
 
 // If we only want to log the Player positions for mapping purpose, we just return this script
@@ -65,8 +68,8 @@ if ($State == "board" or $State == "start") {
 if ($DisplayPosition) {
 	echo '
 	<manialink version="2">
-	<frame pos="-27.0 53.2" size="53.8 8.8">
-		<label id="Position" hidden="0" text="" pos="-27.0 53.2" size="53.8 8.8" textprefix="$o$s" textcolor="FFFF" valign="top" halign="center"/>
+	<frame>
+		<label id="Position" pos="-27.0 53.2" size="53.8 8.8" textprefix="$o$s" textcolor="FFF" valign="top" halign="center"/>
 	</frame>
 	<script><!--
 	#RequireContext '.$RequiredContext.'
@@ -105,15 +108,14 @@ echo '
 	<manialink version="2">
 		<timeout>15</timeout>
 		<frame id="Window" hidden="0">
-			<quad id="Background" hidden="0" sizen="160 120" posn="0 80 1"  valign="top"  bgcolor="'.$BgColor.'" halign="center"/>
-			<quad id="TitleBackground" hidden="0" sizen="160 10" posn="0 80 2"  valign="top"  bgcolor="000F" halign="center"/>
-			<label id="Close" style="TextValueBig" hidden="0" sizen="30 10" posn="73 78.5 3" text="x" textcolor="F30F" scriptevents="1" valign="top" halign="center"/>
-			<label id="Title" hidden="0" text="" sizen="160 90" posn="0 77.5 3" textprefix="$o$s" textcolor="FFFF" valign="top" halign="center"/>
-			<label id="Message" hidden="0" text="" sizen="130 90" posn="-60 60 3" textcolor="FF0F" maxline="25" autonewline="1" valign="top" halign="left"/>
+			<quad id="Background" sizen="160 120" posn="0 80 1" valign="top"  bgcolor="'.$BgColor.'" halign="center"/>
+			<quad id="TitleBackground" sizen="160 10" posn="0 80 2" valign="top"  bgcolor="000F" halign="center"/>
+			<label id="Close" style="TextValueBig" sizen="30 10" posn="73 78.5 3" text="x" textcolor="F30F" scriptevents="1" valign="top" halign="center"/>
+			<label id="Title" sizen="160 90" posn="0 77.5 3" textprefix="$o$s" textcolor="FFFF" valign="top" halign="center"/>
+			<label id="Message" sizen="130 90" posn="-60 60 3" textcolor="FF0F" maxline="25" autonewline="1" valign="top" halign="left"/>
 			<label id="StartQuest" style="CardButtonMedium" hidden="1" sizen="100 10" posn="0 -30 3" text="Start Quest" textcolor="FF0F" scriptevents="1" valign="top" halign="center"/>
-			<label id="Left" style="TextValueBig" hidden="0" sizen="30 10" posn="-30 -20 3" text="<" scriptevents="1" valign="top" halign="center"/>
-			<label id="Right" style="TextValueBig" hidden="0" sizen="30 10" posn="30 -20 3" text=">" scriptevents="1" valign="top" halign="center"/>
-
+			<label id="Left" style="TextValueBig" sizen="30 10" posn="-30 -20 3" text="&lt;" scriptevents="1" valign="top" halign="center"/>
+			<label id="Right" style="TextValueBig" sizen="30 10" posn="30 -20 3" text="&gt;" scriptevents="1" valign="top" halign="center"/>
 		</frame>
 		<script><!--
 			#RequireContext '.$RequiredContext.'
@@ -221,7 +223,7 @@ echo '
 					{
 						declare Text RankDisplay = TextLib::ToText(i+1);
 						if (i < 9) RankDisplay = "0" ^ TextLib::ToText(i+1);
-						Message.SetText(Message.Value ^ "$fff#" ^ RankDisplay ^ ":$g\t" ^ playersList[i].nickname ^ "$z $fff(" ^ playersList[i].login ^ ") in " ^ playersList[i].firstTime ^ " (PB: " ^ playersList[i].bestTime ^ ")\n");
+						Message.SetText(Message.Value ^ "$fff#" ^ RankDisplay ^ ":$g\t" ^ playersList[i].nickname ^ "$z $fff($n" ^ playersList[i].login ^ "$m) in $n" ^ playersList[i].firstTime ^ "$m (PB: $n" ^ playersList[i].bestTime ^ "$m)\n");
 					}
 				}
 			}
@@ -540,7 +542,7 @@ echo '
 } else {
 	$client = strtolower($_SERVER['HTTP_USER_AGENT']);
 	echo '
-	<manialink version="2">
+	<manialink version="3">
 	<script><!--
 	main()
 	{
