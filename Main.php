@@ -29,9 +29,23 @@ if ($HideGuiGet == "yes") {
 $startTimeVar = "RaceStartTime";
 // Name of the RequireContext condition for the script to run in-game
 $RequiredContext = "CTmMlScriptIngame";
+// Additional script included for ShootMania, concerning Obstacle to prevent jumps from cp to cp
+$scriptSMObstaclePreventJump = "";
 if ($ShootManiaCall == true) {
 	$startTimeVar = "StartTime";
 	$RequiredContext = "CSmMlScriptIngame";
+	$scriptSMObstaclePreventJump = '
+							// Little check SM Obstacle specific to avoid any CP jump during a quest
+							if (LoadedTitle.TitleId == "obstacle@smokegun") {
+								declare LocalPlayer <=> InputPlayer;
+								declare netread Net_UsedJump for LocalPlayer = False;
+								if (Net_UsedJump) {
+									if (DebugMode) log("Jump used. Quest cancelled.");
+									clearPersistentData();
+									return;
+								}
+							}
+	';
 }
 // URL used in the few requests done in the script (to get the board, the tokens and register a completed quest)
 $urlToRequest = ($_SERVER['HTTPS'] == "on") ? "https://" : "http://";
@@ -488,6 +502,8 @@ echo '
 								clearPersistentData();
 								return;
 							}
+							
+							'.$scriptSMObstaclePreventJump.'
 							
 							declare Text RemoveToken = "'.htmlentities($Token, ENT_XML1).'";
 							// We set the right token state as collected (True)
