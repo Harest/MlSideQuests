@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost
--- Généré le :  Dim 24 nov. 2019 à 20:22
+-- Généré le :  Dim 01 déc. 2019 à 22:14
 -- Version du serveur :  10.3.17-MariaDB-0+deb10u1-log
 -- Version de PHP :  7.3.11-1~deb10u1
 
@@ -69,12 +69,12 @@ CREATE TABLE `quests` (
 
 CREATE TABLE `tokens` (
   `id` mediumint(8) UNSIGNED NOT NULL,
-  `quest_id` tinyint(3) UNSIGNED NOT NULL,
+  `quest_id` smallint(5) UNSIGNED NOT NULL,
   `name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `min_pos_x` smallint(5) UNSIGNED DEFAULT NULL,
   `max_pos_x` smallint(5) UNSIGNED DEFAULT NULL,
-  `min_pos_y` smallint(5) UNSIGNED DEFAULT NULL,
-  `max_pos_y` smallint(5) UNSIGNED DEFAULT NULL,
+  `min_pos_y` smallint(5) DEFAULT NULL,
+  `max_pos_y` smallint(5) DEFAULT NULL,
   `min_pos_z` smallint(5) UNSIGNED DEFAULT NULL,
   `max_pos_z` smallint(5) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Collectibles needed to complete the quest';

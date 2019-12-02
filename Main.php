@@ -495,7 +495,11 @@ echo '
 							{
 								if (TextLib::ToLowerCase(RemoveToken) == TextLib::ToLowerCase(Pe_LocalTokensIds[G_QuestId][i]))
 								{
-									if (DebugMode) log("Quest " ^ TextLib::ToText(G_QuestId) ^ " - Token " ^ Pe_LocalTokensIds[G_QuestId][i] ^ " collected");
+									if (Per_LocalTokensCollected[G_QuestId][i]) {
+										if (DebugMode) log("Quest " ^ TextLib::ToText(G_QuestId) ^ " - Token " ^ Pe_LocalTokensIds[G_QuestId][i] ^ " already collected, skipping - Position: " ^ TextLib::ToText(GUIPlayer.Position));
+										break;
+									}
+									if (DebugMode) log("Quest " ^ TextLib::ToText(G_QuestId) ^ " - Token " ^ Pe_LocalTokensIds[G_QuestId][i] ^ " collected - Position: " ^ TextLib::ToText(GUIPlayer.Position));
 									Per_LocalTokensCollected[G_QuestId][i] = True;
 									Pe_PlayerPos[G_QuestId][i] = TextLib::ToText(GUIPlayer.Position);
 									break;
