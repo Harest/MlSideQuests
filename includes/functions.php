@@ -35,12 +35,16 @@ function gameTimeToDateInterval($time) {
 	return $dateInterval;
 }
 
-// Return a GameTime DateInterval formatted as MM:SS.ms
+// Return a GameTime DateInterval < 1 day formatted as (HH:)MM:SS.ms
 function gameTimeFormatted($time) {
 	$tmpTime = gameTimeToDateInterval($time);
-	if ($tmpTime->h >= 1) {
-		return "more than 1 hour";
+	if ($tmpTime->d >= 1) {
+		return "more than 1 day";
 	} else {
-		return $tmpTime->format("%I:%S.").$tmpTime->f;
+		if ($tmpTime->h >= 1) {
+			return $tmpTime->format("%H:%I:%S.").$tmpTime->f;
+		} else {
+			return $tmpTime->format("%I:%S.").$tmpTime->f;
+		}
 	}
 }
