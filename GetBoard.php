@@ -47,6 +47,8 @@ if(isClientName('maniaplanet')) {
 		$qh = null;
 		// Format the players' times
 		foreach ($players as $key => $player) {
+			$players[$key]["I_firstTime"] = $player["firstTime"];
+			$players[$key]["I_bestTime"] = $player["bestTime"];
 			$players[$key]["firstTime"] = gameTimeFormatted($player["firstTime"]);
 			$players[$key]["bestTime"] = gameTimeFormatted($player["bestTime"]);
 		}

@@ -14,7 +14,8 @@ $SimpleBoard = boolval(filter_input(INPUT_GET, 'SimpleBoard')); // Used to displ
 $SimpleBoard = ($SimpleBoard == true) ? "True" : "False";
 $ShootManiaCall = boolval(filter_input(INPUT_GET, 'SM')); // Used to know if it's a ShootMania call, else it's considered a TM² one
 $HideGuiGet =  strtolower(filter_input(INPUT_GET, 'HideGui'));
-$DisplayPosition = boolval(filter_input(INPUT_GET, 'DisplayPosition')); // Used during map edition to know your exact position (call it w/ MT clip)
+$DisplayPosition = boolval(isset($_GET["DisplayPosition"])); // Used during map edition to know your exact position (call it w/ MT clip)
+$DisplayMakingOf = boolval(isset($_GET["MakingOf"])); // Used during the creation of a making of to show the map name & display cost top left (call it w/ MT clip)
 
 // Set constants used in the script
 $BgColor = "000B"; // Background color of the board window
@@ -115,7 +116,27 @@ if ($DisplayPosition) {
 	--></script>
 	</manialink>';
 	return;
+// If we only want to display the map name for making of purpose, we just return this script
+// Display the map name & display cost top left of the screen
+} else if ($DisplayMakingOf) {
+	echo '
+	<manialink version="2">
+		<frame hidden="0">
+			<quad id="MsgBackground" sizen="250 11" posn="-145 86 3" valign="top"  bgcolor="0005" halign="center"/>
+			<label id="Message" hidden="0" text="" sizen="180 90" posn="-155 85 3" textcolor="FFFF" maxline="25" autonewline="1" valign="top" halign="left"/>
+		</frame>
+		<script><!--
+		#Include "TextLib" as TL
+		main() {
+			declare CMlLabel Message = (Page.GetFirstChild("Message") as CMlLabel);
+			Message.SetText(Map.MapName ^ "\nC: " ^ TL::ToText(Map.CopperPrice));
+		}
+		--></script>
+	</manialink>';
+	return;
 }
+
+if ($QuestId == 0) return; // Exit if QuestId isn't properly provided
 
 // Echo whole manialink
 echo '
@@ -128,6 +149,7 @@ echo '
 			<label id="Title" sizen="160 90" posn="0 77.5 3" textprefix="$o$s" textcolor="FFFF" valign="top" halign="center"/>
 			<label id="Message" sizen="130 90" posn="-60 60 3" textcolor="FF0F" maxline="25" autonewline="1" valign="top" halign="left"/>
 			<label id="StartQuest" style="CardButtonMedium" hidden="1" sizen="100 10" posn="0 -30 3" text="Start Quest" textcolor="FF0F" scriptevents="1" valign="top" halign="center"/>
+			<label id="ChangeSorting" style="CardButtonMedium" hidden="1" sizen="100 10" posn="76 -30 3" text="Sort by PB ⏱" textcolor="FF0F" scriptevents="1" valign="top" halign="right"/>
 			<label id="Left" style="TextValueBig" sizen="30 10" posn="-30 -20 3" text="&lt;" scriptevents="1" valign="top" halign="center"/>
 			<label id="Right" style="TextValueBig" sizen="30 10" posn="30 -20 3" text="&gt;" scriptevents="1" valign="top" halign="center"/>
 		</frame>
@@ -140,6 +162,8 @@ echo '
 			#Struct SPlayer {
 				Text login;
 				Text nickname;
+				Integer I_firstTime;
+				Integer I_bestTime;
 				Text firstTime;
 				Text bestTime;
 			}
@@ -157,6 +181,11 @@ echo '
 				SToken[] Tokens;
 			}
 			
+			// Enum sorting options
+			#Const SortOpt_FirstCompletionDate 0
+			#Const SortOpt_PersonalBest 1
+			#Const SortOpt_FirstCompletionTime 2
+			
 			// Global declarations //
 			// QuestId concerned
 			declare Integer G_QuestId;
@@ -165,6 +194,7 @@ echo '
 			declare CMlFrame Window;
 			declare CMlLabel Title;
 			declare CMlLabel Message;
+			declare CMlLabel ChangeSorting;
 			declare CMlLabel Left;
 			declare CMlLabel Right;
 			declare Text HideGui;
@@ -173,6 +203,10 @@ echo '
 			declare Integer MaxNumPerPage;
 			declare Integer NumOfPages;
 			declare Integer CurPage;
+			declare Integer CurSorting;
+			declare SPlayer[] PlayersSortedByFirstDate;
+			declare SPlayer[] PlayersSortedByBestTime;
+			declare SPlayer[] PlayersSortedByFirstTime;
 
 			// Check if all the tokens are collected to trigger server processing if yes
 			Boolean TokensAreCollected()
@@ -204,6 +238,52 @@ echo '
 				P_QuestMapUid[G_QuestId] = "";
 			}
 			
+			// Sort the players list according to the current sorting preference (default to first completion date) 
+			SPlayer[] sortedPlayersList(SPlayer[] playersList, Integer nbPlayers) {
+				declare SPlayer[] sortedPlayersList = playersList;
+				declare SPlayer tempPlayer;
+				declare Integer j;
+				switch (CurSorting) {
+					case SortOpt_FirstCompletionDate:
+					{
+						if (PlayersSortedByFirstDate.count == 0) PlayersSortedByFirstDate = playersList;
+						return playersList;
+					}
+					case SortOpt_PersonalBest:
+					{
+						if (PlayersSortedByBestTime.count != 0) return PlayersSortedByBestTime;
+					}
+					case SortOpt_FirstCompletionTime:
+					{
+						if (PlayersSortedByFirstTime.count != 0) return PlayersSortedByFirstTime;
+					}
+				}
+				
+				for(i, 0, nbPlayers - 1) {
+					tempPlayer = sortedPlayersList[i];
+					j = i;
+					switch (CurSorting) {
+						case SortOpt_PersonalBest:
+						{
+							while (j > 0 && sortedPlayersList[j - 1].I_bestTime > tempPlayer.I_bestTime) {
+								sortedPlayersList[j] = sortedPlayersList[j - 1];
+								j -= 1;
+							}
+						}
+						case SortOpt_FirstCompletionTime:
+						{
+							while (j > 0 && sortedPlayersList[j - 1].I_firstTime > tempPlayer.I_firstTime) {
+								sortedPlayersList[j] = sortedPlayersList[j - 1];
+								j -= 1;
+							}
+						}
+					}
+					sortedPlayersList[j] = tempPlayer;
+				}
+				
+				return sortedPlayersList;
+			}
+			
 			// Display players list in the board (players who completed the quest)
 			/*	Param SPlayer[] playersList = List of players logins and nicknames
 				Param Text QuestShortDesc = Short description of the quest displayed alongside players list
@@ -215,16 +295,35 @@ echo '
 				declare Integer MaxLimit = (CurPage * MaxNumPerPage) - 1;
 				declare Integer nbPlayers = playersList.count;
 				declare Text PluralPlayers = "player";
+				declare Text OrderedBy;
+				declare SPlayer[] sortedPlayersList;
 				
-				Message.SetText(QuestShortDesc ^ "\n\n");
+				sortedPlayersList = sortedPlayersList(playersList, nbPlayers);
+				
+				Message.SetText(QuestShortDesc ^ "$z\n\n");
 				
 				if (nbPlayers > 1) PluralPlayers = "players";
 				if (nbPlayers >= 1) {
+					ChangeSorting.Visible = True;
 					declare Text QuestTitleToDisplay = TextLib::Replace(QuestTitleList, "[count]", nbPlayers ^ " " ^ PluralPlayers);
-					Message.SetText(Message.Value ^ QuestTitleToDisplay ^ "\n");
-					if (CurPage == 1) Message.SetText(Message.Value ^ "$n$fffNote: This list is cached 10 minutes, ordered by first completion date.$z\n");
+					Message.SetText(Message.Value ^ QuestTitleToDisplay ^ "$z\n");
+					switch (CurSorting) {
+						case SortOpt_FirstCompletionDate:
+						{
+							OrderedBy = "first completion date";
+						}
+						case SortOpt_PersonalBest:
+						{
+							OrderedBy = "best completion time";
+						}
+						case SortOpt_FirstCompletionTime:
+						{
+							OrderedBy = "first completion time";
+						}
+					}
+					if (CurPage == 1) Message.SetText(Message.Value ^ "$n$fffNote: This list is cached 10 minutes, ordered by " ^ OrderedBy ^ ".$z\n");
 				} else {
-					Message.SetText(Message.Value ^ QuestTitleEmptyList ^ "\n$n$fffNote: This list is cached 10 minutes.$z");
+					Message.SetText(Message.Value ^ QuestTitleEmptyList ^ "$z");
 				}
 				for(i, StartPos, MaxLimit)
 				{
@@ -233,11 +332,11 @@ echo '
 						Right.Visible = False;
 						break;
 					}
-					if (playersList.existskey(i))
+					if (sortedPlayersList.existskey(i))
 					{
 						declare Text RankDisplay = TextLib::ToText(i+1);
 						if (i < 9) RankDisplay = "0" ^ TextLib::ToText(i+1);
-						Message.SetText(Message.Value ^ "$fff#" ^ RankDisplay ^ ":$g\t" ^ playersList[i].nickname ^ "$z $fff($n" ^ playersList[i].login ^ "$m) in $n" ^ playersList[i].firstTime ^ "$m (PB: $n" ^ playersList[i].bestTime ^ "$m)\n");
+						Message.SetText(Message.Value ^ "$fff#" ^ RankDisplay ^ ":$g\t" ^ sortedPlayersList[i].nickname ^ "$z $fff($n" ^ sortedPlayersList[i].login ^ "$m) in $n" ^ sortedPlayersList[i].firstTime ^ "$m (PB: $n" ^ sortedPlayersList[i].bestTime ^ "$m)\n");
 					}
 				}
 			}
@@ -310,6 +409,8 @@ echo '
 							Left = (Page.GetFirstChild("Left") as CMlLabel);
 							Right = (Page.GetFirstChild("Right") as CMlLabel);
 							declare CMlLabel StartQuest = (Page.GetFirstChild("StartQuest") as CMlLabel);
+							ChangeSorting = (Page.GetFirstChild("ChangeSorting") as CMlLabel);
+							CurSorting = SortOpt_FirstCompletionDate;
 							declare Boolean HideStartButton = '.htmlentities($SimpleBoard, ENT_XML1).';
 							Title.SetText("'.htmlentities($QuestInfo["title"], ENT_XML1).'");
 							
@@ -400,7 +501,7 @@ echo '
 													}
 													else
 													{
-														Message.SetText(QuestFullDesc ^ "\n\n$fffHave fun!\n\n$nNote: You need to complete the quest in the same race from where you started it. If you restart (e.g. by pressing del), you\'ll need to start the quest again. Several quests can be done in the same race.$z");
+														Message.SetText(QuestFullDesc ^ "$z\n\n$fffHave fun!\n\n$nNote: You need to complete the quest in the same race from where you started it. If you restart (e.g. by pressing del), you\'ll need to start the quest again. Several quests can be done in the same race.$z");
 													}
 													
 													// Log all tokens for quest if debug activated
@@ -436,6 +537,20 @@ echo '
 											Right.Visible = True;
 											CurPage += 1;
 											if (CurPage == NumOfPages) Right.Visible = False;
+											displayPlayers(Parts, QuestShortDesc, QuestTitleList, QuestTitleEmptyList);
+										}
+										else if(Event.ControlId=="ChangeSorting")
+										{
+											if (CurSorting == SortOpt_FirstCompletionDate) {
+												CurSorting = SortOpt_PersonalBest;
+												ChangeSorting.SetText("$nSort by 1st ⏱$z");
+											} else if (CurSorting == SortOpt_PersonalBest) {
+												CurSorting = SortOpt_FirstCompletionTime;
+												ChangeSorting.SetText("$nSort by 1st $z");
+											} else {
+												CurSorting = SortOpt_FirstCompletionDate;
+												ChangeSorting.SetText("$nSort by PB ⏱$z");
+											}
 											displayPlayers(Parts, QuestShortDesc, QuestTitleList, QuestTitleEmptyList);
 										}
 										else if(Event.ControlId=="Close")
